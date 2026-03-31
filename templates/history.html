@@ -1,0 +1,788 @@
+{% extends "base.html" %}
+
+{% block title %}History{% endblock %}
+
+{% block content %}
+<style>
+    .history-container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .history-header {
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .history-header h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .history-controls {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .history-controls select {
+        padding: 0.75rem 1.5rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+        color: var(--gray-700);
+        cursor: pointer;
+        transition: all 0.3s;
+        min-width: 150px;
+        background: white;
+    }
+
+    .history-controls select:hover {
+        border-color: var(--primary);
+    }
+
+    .history-controls select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .btn-refresh {
+        background: white;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .btn-refresh:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .history-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow);
+        transition: all 0.3s;
+        animation: scaleIn 0.6s ease;
+        border: 1px solid var(--gray-200);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .stat-card .stat-label {
+        display: block;
+        color: var(--gray-500);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.8s ease;
+        border: 1px solid var(--gray-200);
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .table-header h3 {
+        color: var(--gray-700);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .table-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .table-controls select {
+        padding: 0.5rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        background: white;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .history-table th {
+        background: var(--gray-50);
+        color: var(--gray-600);
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 2px solid var(--gray-200);
+        cursor: pointer;
+        transition: background 0.3s;
+        white-space: nowrap;
+    }
+
+    .history-table th:hover {
+        background: var(--gray-100);
+    }
+
+    .history-table th i {
+        margin-left: 0.5rem;
+        color: var(--gray-400);
+        font-size: 0.8rem;
+    }
+
+    .history-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .history-table tbody tr {
+        transition: all 0.3s;
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .history-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-badge.safe {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid var(--primary);
+    }
+
+    .status-badge.warning {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #f59e0b;
+    }
+
+    .status-badge.critical {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #ef4444;
+    }
+
+    .mode-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-300);
+    }
+
+    .mode-badge.esp32 {
+        background: #e0f2fe;
+        color: #0369a1;
+        border-color: #38bdf8;
+    }
+
+    .risk-safe {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .risk-warning {
+        color: #f59e0b;
+        font-weight: 600;
+    }
+
+    .risk-critical {
+        color: #ef4444;
+        font-weight: 600;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .pagination button {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--gray-200);
+        background: white;
+        color: var(--gray-700);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        min-width: 40px;
+    }
+
+    .pagination button:hover:not(:disabled) {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .pagination button.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .loading-row {
+        text-align: center;
+        padding: 3rem;
+        color: var(--gray-500);
+    }
+
+    .loading-row i {
+        margin-bottom: 1rem;
+    }
+
+    #showingInfo {
+        color: var(--gray-500);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .history-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .history-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .history-controls select,
+        .history-controls button {
+            width: 100%;
+        }
+        
+        .table-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .table-controls {
+            width: 100%;
+        }
+        
+        .table-controls select {
+            flex: 1;
+        }
+    }
+</style>
+
+<div class="history-container">
+    <div class="history-header">
+        <h1>
+            <i class="fas fa-history"></i>
+            Historical Data
+        </h1>
+        
+        <!-- Controls -->
+        <div class="history-controls">
+            <select id="zoneFilter" onchange="loadHistory()">
+                <option value="all">All Zones</option>
+                <option value="Zone A">Zone A</option>
+                <option value="Zone B">Zone B</option>
+                <option value="Zone C">Zone C</option>
+            </select>
+            
+            <select id="statusFilter" onchange="loadHistory()">
+                <option value="all">All Status</option>
+                <option value="SAFE">Safe</option>
+                <option value="WARNING">Warning</option>
+                <option value="CRITICAL">Critical</option>
+            </select>
+            
+            <select id="modeFilter" onchange="loadHistory()">
+                <option value="all">All Modes</option>
+                <option value="manual">Manual</option>
+                <option value="esp32">ESP32</option>
+            </select>
+            
+            <button class="btn-download" onclick="exportData()">
+                <i class="fas fa-download"></i> Export CSV
+            </button>
+            
+            <button class="btn-refresh" onclick="loadHistory()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="history-stats">
+        <div class="stat-card">
+            <span class="stat-label">Total Records</span>
+            <span class="stat-number" id="totalRecords">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Date Range</span>
+            <span class="stat-number" id="dateRange">No data</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">ESP32 Reads</span>
+            <span class="stat-number" id="esp32Count">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Manual Reads</span>
+            <span class="stat-number" id="manualCount">0</span>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="table-card">
+        <div class="table-header">
+            <h3>
+                <i class="fas fa-list" style="color: var(--primary);"></i>
+                Reading History
+            </h3>
+            <div class="table-controls">
+                <span id="showingInfo">Showing 0 records</span>
+                <select id="pageSize" onchange="loadHistory()">
+                    <option value="10">10 per page</option>
+                    <option value="25" selected>25 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('timestamp')">
+                            Timestamp <i class="fas fa-sort" id="sort-timestamp"></i>
+                        </th>
+                        <th onclick="sortTable('zone')">
+                            Zone <i class="fas fa-sort" id="sort-zone"></i>
+                        </th>
+                        <th onclick="sortTable('count')">
+                            People <i class="fas fa-sort" id="sort-count"></i>
+                        </th>
+                        <th onclick="sortTable('pressure')">
+                            Pressure <i class="fas fa-sort" id="sort-pressure"></i>
+                        </th>
+                        <th onclick="sortTable('flow')">
+                            Flow <i class="fas fa-sort" id="sort-flow"></i>
+                        </th>
+                        <th onclick="sortTable('motion')">
+                            Motion <i class="fas fa-sort" id="sort-motion"></i>
+                        </th>
+                        <th onclick="sortTable('risk')">
+                            Risk <i class="fas fa-sort" id="sort-risk"></i>
+                        </th>
+                        <th onclick="sortTable('status')">
+                            Status <i class="fas fa-sort" id="sort-status"></i>
+                        </th>
+                        <th onclick="sortTable('mode')">
+                            Mode <i class="fas fa-sort" id="sort-mode"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="9" class="loading-row">
+                            <div class="spinner"></div><br>
+                            Loading history data...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+</div>
+
+<script>
+    let currentData = [];
+    let currentPage = 1;
+    let pageSize = 25;
+    let sortColumn = 'timestamp';
+    let sortDirection = 'desc';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('History page loaded');
+        loadHistory();
+    });
+
+    async function loadHistory() {
+        try {
+            console.log('Loading history data...');
+            
+            // Get filter values
+            const zoneFilter = document.getElementById('zoneFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const modeFilter = document.getElementById('modeFilter').value;
+            pageSize = parseInt(document.getElementById('pageSize').value);
+
+            // Show loading state
+            document.getElementById('historyTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" class="loading-row">
+                        <div class="spinner"></div><br>
+                        Loading history data...
+                    </td>
+                </tr>
+            `;
+
+            const response = await fetch('/api/history?limit=1000');
+            const data = await response.json();
+            
+            console.log('API Response:', data);
+
+            if (data.success) {
+                console.log(`Received ${data.data.length} records`);
+                
+                if (data.data.length === 0) {
+                    document.getElementById('historyTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="9" class="loading-row">
+                                <i class="fas fa-inbox" style="font-size: 2rem; color: #9ca3af;"></i><br>
+                                No data found. Please make some analyses on the dashboard first.
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('totalRecords').textContent = '0';
+                    document.getElementById('dateRange').textContent = 'No data';
+                    document.getElementById('esp32Count').textContent = '0';
+                    document.getElementById('manualCount').textContent = '0';
+                    document.getElementById('showingInfo').textContent = 'Showing 0 records';
+                    return;
+                }
+
+                // Apply filters
+                currentData = data.data.filter(item => {
+                    if (zoneFilter !== 'all' && item.zone !== zoneFilter) return false;
+                    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+                    if (modeFilter !== 'all' && item.mode !== modeFilter) return false;
+                    return true;
+                });
+
+                console.log(`After filters: ${currentData.length} records`);
+
+                // Sort data
+                sortData();
+
+                // Update stats
+                updateStats();
+
+                // Render table
+                renderTable();
+
+                // Update showing info
+                document.getElementById('showingInfo').textContent = 
+                    `Showing ${Math.min(currentData.length, pageSize)} of ${currentData.length} records`;
+            } else {
+                console.error('API returned success: false');
+                showToast('Error loading history data', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading history:', error);
+            showToast('Error loading history data', 'error');
+            
+            document.getElementById('historyTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" class="loading-row">
+                        <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 2rem;"></i><br>
+                        Error loading data. Check console for details.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function sortData() {
+        currentData.sort((a, b) => {
+            let valA = a[sortColumn];
+            let valB = b[sortColumn];
+
+            if (sortColumn === 'risk' || sortColumn === 'count' || sortColumn === 'pressure' || sortColumn === 'flow') {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+
+            if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+            if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        // Update sort icons
+        document.querySelectorAll('.history-table th i').forEach(icon => {
+            icon.className = 'fas fa-sort';
+        });
+        const sortIcon = document.getElementById(`sort-${sortColumn}`);
+        if (sortIcon) {
+            sortIcon.className = `fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`;
+        }
+    }
+
+    function sortTable(column) {
+        if (sortColumn === column) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortColumn = column;
+            sortDirection = 'desc';
+        }
+        
+        sortData();
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('historyTableBody');
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageData = currentData.slice(start, end);
+
+        if (pageData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="loading-row">
+                        <i class="fas fa-inbox"></i> No records match the filters
+                    </td>
+                </tr>
+            `;
+            renderPagination();
+            return;
+        }
+
+        tbody.innerHTML = pageData.map((item, index) => {
+            // Determine risk class
+            let riskClass = 'risk-safe';
+            if (item.status === 'WARNING') riskClass = 'risk-warning';
+            if (item.status === 'CRITICAL') riskClass = 'risk-critical';
+            
+            return `
+                <tr style="animation: fadeInUp 0.5s ease ${index * 0.05}s both;">
+                    <td>${item.timestamp || 'N/A'}</td>
+                    <td><strong>${item.zone || 'N/A'}</strong></td>
+                    <td>${item.count || 0}</td>
+                    <td>${item.pressure || 0} Pa</td>
+                    <td>${item.flow || 0} p/s</td>
+                    <td>
+                        <span class="mode-badge ${item.motion ? 'esp32' : ''}">
+                            ${item.motion ? 'High' : 'Low'}
+                        </span>
+                    </td>
+                    <td class="${riskClass}">${item.risk || 0}%</td>
+                    <td>
+                        <span class="status-badge ${(item.status || 'SAFE').toLowerCase()}">
+                            ${item.status || 'SAFE'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="mode-badge ${item.mode || 'manual'}">
+                            <i class="fas fa-${(item.mode || 'manual') === 'esp32' ? 'wifi' : 'keyboard'}"></i>
+                            ${item.mode || 'manual'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        renderPagination();
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(currentData.length / pageSize);
+        const pagination = document.getElementById('pagination');
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // First page button
+        html += `<button onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-angle-double-left"></i>
+                </button>`;
+        
+        // Previous page button
+        html += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-angle-left"></i>
+                </button>`;
+
+        // Page numbers
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, startPage + 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button onclick="changePage(${i})" class="${currentPage === i ? 'active' : ''}">
+                        ${i}
+                    </button>`;
+        }
+
+        // Next page button
+        html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="fas fa-angle-right"></i>
+                </button>`;
+        
+        // Last page button
+        html += `<button onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="fas fa-angle-double-right"></i>
+                </button>`;
+
+        pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        renderTable();
+    }
+
+    function updateStats() {
+        document.getElementById('totalRecords').textContent = currentData.length;
+        
+        if (currentData.length > 0) {
+            const firstDate = currentData[currentData.length - 1].timestamp?.split(' ')[0] || 'N/A';
+            const lastDate = currentData[0].timestamp?.split(' ')[0] || 'N/A';
+            document.getElementById('dateRange').textContent = `${firstDate} to ${lastDate}`;
+        } else {
+            document.getElementById('dateRange').textContent = 'No data';
+        }
+
+        const esp32Count = currentData.filter(item => item.mode === 'esp32').length;
+        const manualCount = currentData.filter(item => item.mode === 'manual').length;
+        
+        document.getElementById('esp32Count').textContent = esp32Count;
+        document.getElementById('manualCount').textContent = manualCount;
+    }
+
+    function exportData() {
+        if (currentData.length === 0) {
+            showToast('No data to export', 'warning');
+            return;
+        }
+
+        // Create CSV
+        const headers = ['Timestamp', 'Zone', 'People Count', 'Pressure (Pa)', 'Flow Rate', 'Motion', 'Risk %', 'Status', 'Mode'];
+        const csvRows = [];
+        
+        csvRows.push(headers.join(','));
+        
+        currentData.forEach(item => {
+            const row = [
+                item.timestamp || '',
+                `"${item.zone || ''}"`,
+                item.count || 0,
+                item.pressure || 0,
+                item.flow || 0,
+                item.motion ? 'High' : 'Low',
+                item.risk || 0,
+                item.status || 'SAFE',
+                item.mode || 'manual'
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        a.href = url;
+        a.download = `ecris_export_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        
+        window.URL.revokeObjectURL(url);
+        showToast('Data exported successfully', 'success');
+    }
+
+    function showToast(message, type = 'success') {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icon = type === 'success' ? 'check-circle' : 
+                     type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle';
+        
+        toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.remove(), 3000);
+    }
+</script>
+{% endblock %}

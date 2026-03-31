@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECRIS - Dashboard</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+<div class="top-bar-container">
+
+<div class="weather">
+<i class="fas fa-sun"></i>
+<span>Hot days ahead 28°C</span>
+</div>
+
+<div class="top-bar-right">
+<span>ENG</span>
+<span>IN</span>
+<span>08-03-2026</span>
+</div>
+
+</div>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar">
+<div class="nav-container">
+
+<div class="logo">
+<i class="fas fa-shield-alt"></i>
+<span>ECRIS</span>
+</div>
+
+<div class="nav-links">
+<a href="/">Home</a>
+<a href="/dashboard" class="active">Dashboard</a>
+<a href="/analytics">Analytics</a>
+<a href="/history">History</a>
+<a href="/crowd_dynamics">Crowd Intelligence</a>
+</div>
+
+<div class="nav-buttons">
+<button class="btn-outline">Live Demo</button>
+<button class="btn-primary">Get Started</button>
+</div>
+
+</div>
+</nav>
+
+<!-- Main Dashboard -->
+<div class="dashboard-container">
+
+<!-- Sidebar -->
+<div class="sidebar">
+
+<h2>ECRIS</h2>
+
+<label>Zone</label>
+<select id="zone">
+<option value="Zone A">Zone A - North Entrance</option>
+<option value="Zone B">Zone B - Main Hall</option>
+<option value="Zone C">Zone C - South Exit</option>
+</select>
+
+<label>Mode</label>
+<select id="mode" onchange="toggleMode()">
+<option value="manual">Manual Mode</option>
+<option value="esp32">ESP32 Mode</option>
+</select>
+
+<h3>Area Settings</h3>
+
+<label>Area (m²)</label>
+<input type="number" id="area" value="50">
+
+<label>Expected Capacity</label>
+<input type="number" id="capacity" value="100">
+
+<h3>Threshold Settings</h3>
+
+<label>Safe Limit (0-100)</label>
+<input type="number" id="safe" min="0" max="100" value="40">
+
+<label>Warning Limit (0-100)</label>
+<input type="number" id="warning" min="0" max="100" value="75">
+
+<small>Risk > Warning = Critical</small>
+
+</div>
+
+
+<!-- Main Content -->
+<div class="main-content">
+
+<h1>ECRIS - Intelligent Crowd Risk Matrix</h1>
+
+
+<!-- Manual Section -->
+<div id="manual-section" class="input-section">
+
+<h2>Manual Input</h2>
+
+<div class="input-grid">
+
+<div class="input-card">
+<label>People Count</label>
+<input type="number" id="count" value="82">
+</div>
+
+<div class="input-card">
+<label>Pressure (Pa)</label>
+<input type="number" id="pressure" value="1200">
+</div>
+
+<div class="input-card">
+<label>People Flow (p/min)</label>
+<input type="number" id="flow" value="60">
+</div>
+
+<div class="input-card">
+<label>Motion</label>
+<select id="motion">
+<option value="0">Low / Normal</option>
+<option value="1">High / Panic</option>
+</select>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ESP32 Section -->
+<div id="esp32-section" class="input-section" style="display:none">
+
+<h2>ESP32 Live Readings</h2>
+
+<div class="esp32-card">
+
+<div class="esp32-header">
+<span><i class="fas fa-wifi"></i> Connected</span>
+<span id="esp32-last-seen">Waiting for data...</span>
+</div>
+
+<div class="esp32-readings">
+
+<div class="reading">
+<span class="label">People Count</span>
+<span class="value" id="esp32-count">0</span>
+</div>
+
+<div class="reading">
+<span class="label">Pressure</span>
+<span class="value" id="esp32-pressure">0 Pa</span>
+</div>
+
+<div class="reading">
+<span class="label">People</span>
+<span class="value" id="esp32-flow">0 p/m</span>
+</div>
+
+<div class="reading">
+<span class="label">Motion</span>
+<span class="value" id="esp32-motion">Normal</span>
+</div>
+
+</div>
+
+<button class="btn-refresh" onclick="refreshESP32()">
+<i class="fas fa-sync-alt"></i> Refresh
+</button>
+
+</div>
+</div>
+
+
+<!-- Buttons -->
+<div class="action-buttons">
+
+<button class="btn-analyze" onclick="analyze()">
+<i class="fas fa-search"></i> Analyze Zone
+</button>
+
+<button class="btn-reset" onclick="resetInputs()">
+<i class="fas fa-undo"></i> Reset
+</button>
+
+<button class="btn-test" onclick="testESP32()" id="test-esp32-btn" style="display:none">
+<i class="fas fa-microchip"></i> Test ESP32
+</button>
+
+</div>
+
+
+<!-- Results -->
+<div class="results-section">
+
+<h2>Analysis Results</h2>
+
+<div class="results-grid">
+
+<div class="result-card" id="status-card">
+<div class="result-label">STATUS</div>
+<div class="result-value" id="status">-</div>
+</div>
+
+<div class="result-card" id="risk-card">
+<div class="result-label">RISK SCORE</div>
+<div class="result-value" id="risk">-</div>
+</div>
+
+<div class="result-card" id="sop-card">
+<div class="result-label">RECOMMENDED ACTION</div>
+<div class="result-value" id="sop">-</div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- Crowd Dynamics -->
+<div class="results-section">
+
+<h2>Crowd Dynamics</h2>
+
+<div class="results-grid">
+
+<div class="result-card">
+<div class="result-label">DENSITY</div>
+<div class="result-value" id="density">-</div>
+</div>
+
+<div class="result-card">
+<div class="result-label">FLOW TREND</div>
+<div class="result-value">Stable</div>
+</div>
+
+<div class="result-card">
+<div class="result-label">ZONE LOAD</div>
+<div class="result-value">Moderate</div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- Map -->
+
+</div>
+</div>
+
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+
+
+</body>
+</html>

@@ -1,1 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECRIS - Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Weather Bar -->
+    <div class="weather-bar">
+        <div class="weather-container">
+            <div class="weather-info">
+                <div class="weather-temp">
+                    <i class="fas fa-cloud-sun"></i>
+                    <span>28°C</span>
+                </div>
+                <span class="weather-desc">Mostly cloudy</span>
+            </div>
+            <div class="weather-date">
+                <span><i class="far fa-calendar"></i> 02-03-2026</span>
+                <span><i class="far fa-clock"></i> 14:30</span>
+            </div>
+        </div>
+    </div>
 
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>ECRIS</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/analytics" class="active">Analytics</a>
+                <a href="/history">History</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="/dashboard" class="btn-primary">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="analytics-container">
+        <div class="analytics-header">
+            <h1><i class="fas fa-chart-pie"></i> Analytics Dashboard</h1>
+            <div class="date-range">
+                <select id="dateRange" onchange="loadAnalytics()">
+                    <option value="today">Today</option>
+                    <option value="week" selected>Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                    <option value="year">Last Year</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card" id="totalReadings">
+                <div class="summary-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="summary-content">
+                    <span class="summary-label">Total Readings</span>
+                    <span class="summary-value" id="totalReadingsValue">0</span>
+                </div>
+            </div>
+            <div class="summary-card" id="avgRisk">
+                <div class="summary-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="summary-content">
+                    <span class="summary-label">Average Risk</span>
+                    <span class="summary-value" id="avgRiskValue">0%</span>
+                </div>
+            </div>
+            <div class="summary-card" id="criticalEvents">
+                <div class="summary-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="summary-content">
+                    <span class="summary-label">Critical Events</span>
+                    <span class="summary-value" id="criticalValue">0</span>
+                </div>
+            </div>
+            <div class="summary-card" id="warningEvents">
+                <div class="summary-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="summary-content">
+                    <span class="summary-label">Warning Events</span>
+                    <span class="summary-value" id="warningValue">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Risk Trend Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line" style="color: var(--primary);"></i> Risk Trend</h3>
+                    <div class="chart-legend">
+                        <span><span class="legend-dot" style="background: var(--primary);"></span> Risk Score</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="riskTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Zone Distribution Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-pie" style="color: var(--primary);"></i> Risk by Zone</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="zoneChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Status Distribution -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-bar" style="color: var(--primary);"></i> Status Distribution</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Hourly Activity -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-clock" style="color: var(--primary);"></i> Hourly Activity</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone Statistics Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-table"></i> Zone Performance</h3>
+                <button class="btn-refresh" onclick="loadAnalytics()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Zone</th>
+                            <th>Total Readings</th>
+                            <th>Avg Risk</th>
+                            <th>Critical</th>
+                            <th>Warning</th>
+                            <th>Safe</th>
+                            <th>ESP32 Reads</th>
+                            <th>Manual Reads</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zoneStatsTable">
+                        <tr>
+                            <td colspan="8" class="loading-row">
+                                <div class="spinner"></div> Loading data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Risk Distribution -->
+        <div class="insights-grid">
+            <div class="insight-card">
+                <h4><i class="fas fa-clock"></i> Peak Risk Hours</h4>
+                <div id="peakHours">Loading...</div>
+            </div>
+            <div class="insight-card">
+                <h4><i class="fas fa-trend-up"></i> Risk Trends</h4>
+                <div id="riskTrends">Loading...</div>
+            </div>
+            <div class="insight-card">
+                <h4><i class="fas fa-microchip"></i> Sensor Health</h4>
+                <div id="sensorHealth">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .analytics-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .analytics-header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .date-range select {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .date-range select:hover {
+            border-color: var(--primary);
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            animation: scaleIn 0.6s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: var(--primary-light);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .summary-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .summary-content {
+            flex: 1;
+        }
+
+        .summary-label {
+            display: block;
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        #totalReadings .summary-value { color: var(--primary); }
+        #avgRisk .summary-value { color: #f59e0b; }
+        #criticalEvents .summary-value { color: #ef4444; }
+        #warningEvents .summary-value { color: #f59e0b; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .chart-card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header h3 {
+            color: var(--gray-700);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.25rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .table-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-header h3 {
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .analytics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .analytics-table th {
+            background: var(--gray-50);
+            color: var(--gray-600);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .analytics-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .analytics-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .analytics-table .critical {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .analytics-table .warning {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .analytics-table .safe {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .loading-row td {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-500);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .insight-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            animation: scaleIn 0.6s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .insight-card h4 {
+            color: var(--gray-700);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .insight-card h4 i {
+            color: var(--primary);
+        }
+
+        .insight-card div {
+            color: var(--gray-600);
+            line-height: 1.8;
+        }
+
+        @media (max-width: 1024px) {
+            .summary-cards,
+            .charts-grid,
+            .insights-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .summary-cards,
+            .charts-grid,
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .analytics-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+
+    <script>
+        let riskTrendChart, zoneChart, statusChart, hourlyChart;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalytics();
+        });
+
+        async function loadAnalytics() {
+            try {
+                // Show loading states
+                document.getElementById('zoneStatsTable').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="loading-row">
+                            <div class="spinner"></div> Loading data...
+                        </td>
+                    </tr>
+                `;
+
+                // Fetch data
+                const [historyResponse, statsResponse] = await Promise.all([
+                    fetch('/api/history?limit=1000'),
+                    fetch('/api/stats')
+                ]);
+
+                const historyData = await historyResponse.json();
+                const statsData = await statsResponse.json();
+
+                if (historyData.success && statsData.success) {
+                    updateSummaryCards(historyData.data);
+                    updateCharts(historyData.data);
+                    updateZoneTable(statsData.stats);
+                    updateInsights(historyData.data);
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showToast('Error loading analytics data', 'error');
+            }
+        }
+
+        function updateSummaryCards(data) {
+            if (!data || data.length === 0) return;
+
+            const total = data.length;
+            const avgRisk = (data.reduce((sum, item) => sum + item.risk, 0) / total).toFixed(1);
+            const critical = data.filter(item => item.status === 'CRITICAL').length;
+            const warning = data.filter(item => item.status === 'WARNING').length;
+
+            document.getElementById('totalReadingsValue').textContent = total;
+            document.getElementById('avgRiskValue').textContent = avgRisk + '%';
+            document.getElementById('criticalValue').textContent = critical;
+            document.getElementById('warningValue').textContent = warning;
+        }
+
+        function updateCharts(data) {
+            if (!data || data.length === 0) return;
+
+            // Prepare data for charts
+            const last7Days = data.slice(0, 7).reverse();
+            const dates = last7Days.map(item => item.timestamp.split(' ')[0]);
+            const risks = last7Days.map(item => item.risk);
+
+            // Risk Trend Chart
+            const trendCtx = document.getElementById('riskTrendChart').getContext('2d');
+            if (riskTrendChart) riskTrendChart.destroy();
+            
+            riskTrendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Risk Score',
+                        data: risks,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#e5e7eb' }
+                        }
+                    }
+                }
+            });
+
+            // Zone Distribution
+            const zones = {};
+            data.forEach(item => {
+                zones[item.zone] = (zones[item.zone] || 0) + 1;
+            });
+
+            const zoneCtx = document.getElementById('zoneChart').getContext('2d');
+            if (zoneChart) zoneChart.destroy();
+            
+            zoneChart = new Chart(zoneCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(zones),
+                    datasets: [{
+                        data: Object.values(zones),
+                        backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Status Distribution
+            const statusCount = {
+                SAFE: data.filter(item => item.status === 'SAFE').length,
+                WARNING: data.filter(item => item.status === 'WARNING').length,
+                CRITICAL: data.filter(item => item.status === 'CRITICAL').length
+            };
+
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            if (statusChart) statusChart.destroy();
+            
+            statusChart = new Chart(statusCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['SAFE', 'WARNING', 'CRITICAL'],
+                    datasets: [{
+                        data: [statusCount.SAFE, statusCount.WARNING, statusCount.CRITICAL],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#e5e7eb' }
+                        }
+                    }
+                }
+            });
+
+            // Hourly Activity
+            const hourly = Array(24).fill(0);
+            data.forEach(item => {
+                const hour = parseInt(item.timestamp.split(' ')[1]?.split(':')[0] || 12);
+                hourly[hour]++;
+            });
+
+            const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+            if (hourlyChart) hourlyChart.destroy();
+            
+            hourlyChart = new Chart(hourlyCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                    datasets: [{
+                        label: 'Readings',
+                        data: hourly,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateZoneTable(stats) {
+            if (!stats) return;
+
+            let html = '';
+            for (const [zone, stat] of Object.entries(stats)) {
+                html += `
+                    <tr>
+                        <td><strong>${zone}</strong></td>
+                        <td>${stat.total_readings || 0}</td>
+                        <td class="${stat.avg_risk > 75 ? 'critical' : stat.avg_risk > 40 ? 'warning' : 'safe'}">
+                            ${(stat.avg_risk || 0).toFixed(1)}%
+                        </td>
+                        <td class="critical">${stat.critical_count || 0}</td>
+                        <td class="warning">${stat.warning_count || 0}</td>
+                        <td class="safe">${stat.safe_count || 0}</td>
+                        <td>${stat.esp32_readings || 0}</td>
+                        <td>${stat.manual_readings || 0}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('zoneStatsTable').innerHTML = html || 
+                '<tr><td colspan="8" class="loading-row">No data available</td></tr>';
+        }
+
+        function updateInsights(data) {
+            if (!data || data.length === 0) return;
+
+            // Peak hours
+            const hourly = Array(24).fill(0);
+            data.forEach(item => {
+                const hour = parseInt(item.timestamp.split(' ')[1]?.split(':')[0] || 12);
+                hourly[hour]++;
+            });
+            
+            const peakHour = hourly.indexOf(Math.max(...hourly));
+            document.getElementById('peakHours').innerHTML = `
+                <strong>${peakHour}:00 - ${peakHour+1}:00</strong><br>
+                <small>${Math.max(...hourly)} readings during peak hour</small>
+            `;
+
+            // Risk trends
+            const avgRisk = (data.reduce((sum, item) => sum + item.risk, 0) / data.length).toFixed(1);
+            const trend = avgRisk > 75 ? '⚠️ High Risk' : avgRisk > 40 ? '📊 Moderate' : '✅ Normal';
+            document.getElementById('riskTrends').innerHTML = `
+                <strong>${trend}</strong><br>
+                <small>Average risk: ${avgRisk}% over ${data.length} readings</small>
+            `;
+
+            // Sensor health
+            const esp32Count = data.filter(item => item.mode === 'esp32').length;
+            const manualCount = data.filter(item => item.mode === 'manual').length;
+            const total = data.length;
+            
+            document.getElementById('sensorHealth').innerHTML = `
+                <strong>ESP32: ${((esp32Count/total)*100).toFixed(1)}%</strong><br>
+                <strong>Manual: ${((manualCount/total)*100).toFixed(1)}%</strong><br>
+                <small>${esp32Count} ESP32 readings</small>
+            `;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

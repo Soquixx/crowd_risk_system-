@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECRIS - Early Crowd Risk Intelligence System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Weather Bar -->
+    <div class="weather-bar">
+        <div class="weather-container">
+            <div class="weather-info">
+                <div class="weather-temp">
+                    <i class="fas fa-cloud-sun"></i>
+                    <span>28°C</span>
+                </div>
+                <span class="weather-desc">Mostly cloudy</span>
+            </div>
+            <div class="weather-date">
+                <span><i class="far fa-calendar"></i> 0-03-2026</span>
+                <span><i class="far fa-clock"></i> 14:30</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>ECRIS</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="#features">Features</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="/dashboard" class="btn-primary">
+                    <i class="fas fa-rocket"></i> Launch Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Chat Button -->
+    <div class="chat-button">
+        <i class="fas fa-comment"></i>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Early Crowd Risk<br>Intelligence System</h1>
+                <p>IOT Integrated system for monitoring and predicting crowd risks in public spaces. Keep your venues safe with real-time analytics.</p>
+                <div class="hero-buttons">
+                    <a href="/dashboard" class="btn-primary btn-large">
+                        <i class="fas fa-lock"></i> Launch Dashboard
+                    </a>
+                    <a href="#" class="btn-outline btn-large">
+                        <i class="fas fa-play"></i> Watch Demo
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">4</span>
+                        <span class="stat-label">SENSORS</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">3</span>
+                        <span class="stat-label">RISK LEVELS</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">1 sec</span>
+                        <span class="stat-label">UPDATE RATE</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="dashboard-preview">
+                    <div class="preview-header">
+                        <div class="preview-dots">
+                            <span class="preview-dot red"></span>
+                            <span class="preview-dot yellow"></span>
+                            <span class="preview-dot green"></span>
+                        </div>
+                        <span>Live Preview</span>
+                        <i class="fas fa-wifi" style="color: var(--primary);"></i>
+                    </div>
+                    <div class="preview-content">
+                        <div class="preview-card">
+                            <i class="fas fa-users"></i>
+                            <div class="value">82</div>
+                            <div class="label">People</div>
+                        </div>
+                        <div class="preview-card">
+                            <i class="fas fa-gauge-high"></i>
+                            <div class="value">90%</div>
+                            <div class="label">Risk</div>
+                        </div>
+                        <div class="preview-card">
+                            <i class="fas fa-people-arrows"></i>
+                            <div class="value">10</div>
+                            <div class="label">Flow</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2>System Components</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-microchip"></i>
+                <h3>ESP32 + Sensors</h3>
+                <p>VL53L1X, IR Break Beam, PIR Motion, FSR-402 Pressure sensors</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-brain"></i>
+                <h3>Risk Analysis Engine</h3>
+                <p>Real-time risk calculation with rule-based logic</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-bell"></i>
+                <h3>Alert Module</h3>
+                <p>Instant notifications for critical situations</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-cloud"></i>
+                <h3>Cloud Dashboard</h3>
+                <p>Web-based monitoring and control</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3><i class="fas fa-shield-alt"></i> ECRIS</h3>
+                <p>Advanced crowd risk intelligence for safer public spaces.</p>
+            </div>
+            <div class="footer-section">
+                <h3><i class="fas fa-link"></i> Quick Links</h3>
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="#features">Features</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="footer-section">
+                <h3><i class="fas fa-address-card"></i> Contact</h3>
+                <p><i class="fas fa-envelope"></i> info@ecris.com</p>

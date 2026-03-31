@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+
+{% block title %}Crowd Intelligence{% endblock %}
+
+{% block content %}
+<style>
+    .crowd-container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .crowd-header {
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .crowd-header h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .crowd-header h1 i {
+        color: var(--primary);
+    }
+
+    .crowd-header .subtitle {
+        color: var(--gray-600);
+        font-size: 1.1rem;
+        max-width: 800px;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 1rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-badge i {
+        color: var(--primary);
+    }
+
+    .crowd-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .crowd-card {
+        background: var(--white);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .crowd-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .crowd-card i {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+        background: var(--primary-light);
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+    }
+
+    .crowd-card h3 {
+        color: var(--gray-800);
+        margin-bottom: 0.75rem;
+        font-size: 1.3rem;
+    }
+
+    .crowd-card p {
+        color: var(--gray-600);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .crowd-card ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .crowd-card li {
+        padding: 0.5rem 0;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .crowd-card li:last-child {
+        border-bottom: none;
+    }
+
+    .crowd-card li i {
+        font-size: 0.8rem;
+        padding: 0;
+        background: none;
+        margin: 0;
+    }
+
+    .crowd-card li .fa-circle { color: var(--primary); }
+    .crowd-card li .fa-circle.warning { color: #f59e0b; }
+    .crowd-card li .fa-circle.critical { color: #ef4444; }
+
+    .crowd-card strong {
+        color: var(--primary);
+    }
+
+    .info-box {
+        background: var(--primary-light);
+        border-left: 4px solid var(--primary);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .info-box i {
+        font-size: 1.2rem;
+        background: none;
+        padding: 0;
+    }
+
+    .info-box p {
+        margin: 0;
+        color: var(--primary-dark);
+    }
+
+    .safety-section {
+        background: linear-gradient(135deg, var(--gray-50), var(--white));
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--gray-200);
+        animation: fadeInUp 0.8s ease 0.3s both;
+    }
+
+    .safety-section h2 {
+        color: var(--gray-800);
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .safety-section h2 i {
+        color: var(--primary);
+    }
+
+    .safety-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+
+    .safety-card {
+        background: var(--white);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        text-align: center;
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s ease;
+    }
+
+    .safety-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary);
+        box-shadow: var(--shadow);
+    }
+
+    .safety-card i {
+        font-size: 1.75rem;
+        color: var(--primary);
+        margin-bottom: 0.75rem;
+        background: var(--primary-light);
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .safety-card h4 {
+        color: var(--gray-800);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .safety-card p {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .checklist-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--gray-50);
+        border-radius: 0.75rem;
+    }
+
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .checklist-item i {
+        color: var(--primary);
+    }
+
+    @media (max-width: 1024px) {
+        .crowd-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .safety-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .checklist-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .crowd-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .safety-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .checklist-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-row {
+            flex-direction: column;
+        }
+        
+        .stat-badge {
+            width: fit-content;
+        }
+    }
+</style>
+
+<div class="crowd-container">
+    <!-- Header -->
+    <div class="crowd-header">
+        <h1>
+            <i class="fas fa-people-arrows"></i>
+            Crowd Dynamics & Safety Guidelines
+        </h1>
+        <p class="subtitle">
+            Understanding crowd behaviour helps prevent congestion, panic, and stampede risks in large gatherings.
+            Real-time monitoring ensures public safety.
+        </p>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <span class="stat-badge">
+                <i class="fas fa-microchip"></i> 4 Sensors
+            </span>
+            <span class="stat-badge">
+                <i class="fas fa-chart-line"></i> 3 Risk Levels
+            </span>
+            <span class="stat-badge">
+                <i class="fas fa-clock"></i> 1 sec Update
+            </span>
+            <span class="stat-badge">
+                <i class="fas fa-shield-alt"></i> 24/7 Monitoring
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Cards -->
+    <div class="crowd-grid">
+        <!-- Density Card -->
+        <div class="crowd-card">
+            <i class="fas fa-users"></i>
+            <h3>Crowd Density</h3>
+            <p>Safe pedestrian density is <strong>1–2 people per m²</strong> for comfortable movement.</p>
+            <ul>
+                <li>
+                    <i class="fas fa-circle"></i>
+                    1–2 p/m²: <strong>Comfortable</strong>
+                    <span style="color: var(--primary); margin-left: auto;">✓ Safe</span>
+                </li>
+                <li>
+                    <i class="fas fa-circle warning"></i>
+                    3–4 p/m²: <strong>Restricted</strong>
+                    <span style="color: #f59e0b; margin-left: auto;">⚠ Warning</span>
+                </li>
+                <li>
+                    <i class="fas fa-circle critical"></i>
+                    5+ p/m²: <strong>Critical</strong>
+                    <span style="color: #ef4444; margin-left: auto;">⚡ Danger</span>
+                </li>
+            </ul>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <p>Current density in Zone A: 2.3 p/m² (Moderate)</p>
+            </div>
+        </div>
+
+        <!-- Flow Card -->
+        <div class="crowd-card">
+            <i class="fas fa-arrows-left-right"></i>
+            <h3>Flow Rate</h3>
+            <p>Optimal flow is <strong>60–80 people/minute</strong> through standard pathways.</p>
+            <ul>
+                <li>
+                    <i class="fas fa-circle"></i>
+                    0-40 p/min: <strong>Smooth</strong>
+                </li>
+                <li>
+                    <i class="fas fa-circle warning"></i>
+                    41-70 p/min: <strong>Moderate</strong>
+                </li>
+                <li>
+                    <i class="fas fa-circle critical"></i>
+                    71+ p/min: <strong>High Risk</strong>
+                </li>
+            </ul>
+            <div class="info-box">
+                <i class="fas fa-chart-line"></i>
+                <p>Current flow: 75 p/min (High)</p>
+            </div>
+        </div>
+
+        <!-- Monitoring Card -->
+        <div class="crowd-card">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Safety Monitoring</h3>
+            <p>Continuous sensor monitoring detects abnormal crowd behavior early.</p>
+            <ul>
+                <li>
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    Density tracking
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    Flow analysis
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    Pressure detection
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    Instant alerts
+                </li>
+            </ul>
+            <div class="info-box">
+                <i class="fas fa-sync-alt"></i>
+                <p>All sensors online • 3 zones active</p>
+            </div>
+        </div>
+
+        <!-- Emergency Card -->
+        <div class="crowd-card">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Emergency Measures</h3>
+            <p>Immediate actions when critical levels are detected.</p>
+            <ul>
+                <li>
+                    <i class="fas fa-door-open" style="color: var(--primary);"></i>
+                    Open additional exits
+                </li>
+                <li>
+                    <i class="fas fa-route" style="color: var(--primary);"></i>
+                    Redirect crowd flow
+                </li>
+                <li>
+                    <i class="fas fa-user-shield" style="color: var(--primary);"></i>
+                    Alert security
+                </li>
+                <li>
+                    <i class="fas fa-bullhorn" style="color: var(--primary);"></i>
+                    Broadcast instructions
+                </li>
+            </ul>
+            <div class="info-box" style="background: #fef2f2; border-left-color: #ef4444;">
+                <i class="fas fa-circle" style="color: #ef4444;"></i>
+                <p style="color: #991b1b;">Status: All Clear • 4/6 exits available</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Best Practices Section -->
+    <div class="safety-section">
+        <h2>
+            <i class="fas fa-lightbulb"></i>
+            Best Practices for Crowd Management
+        </h2>
+
+        <div class="safety-grid">
+            <div class="safety-card">
+                <i class="fas fa-map"></i>
+                <h4>Zone Planning</h4>
+                <p>Divide venues into zones for better monitoring and control.</p>
+            </div>
+            <div class="safety-card">
+                <i class="fas fa-route"></i>
+                <h4>Clear Pathways</h4>
+                <p>Keep exits and corridors unobstructed at all times.</p>
+            </div>
+            <div class="safety-card">
+                <i class="fas fa-bullhorn"></i>
+                <h4>Public Announcements</h4>
+                <p>Guide crowds with clear instructions during events.</p>
+            </div>
+            <div class="safety-card">
+                <i class="fas fa-user-shield"></i>
+                <h4>Security Deployment</h4>
+                <p>Position staff in high-density areas.</p>
+            </div>
+        </div>
+
+        <!-- Quick Checklist -->
+        <h3 style="color: var(--gray-700); margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-clipboard-check" style="color: var(--primary);"></i>
+            Safety Checklist
+        </h3>
+        <div class="checklist-grid">
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Monitor density every 5 min</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Keep exits clear</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Test announcements</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Train security staff</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Review incidents</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Update emergency plans</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Check sensors</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Test communications</span>
+            </div>
+            <div class="checklist-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Conduct drills</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
